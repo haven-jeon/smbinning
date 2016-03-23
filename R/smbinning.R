@@ -756,7 +756,7 @@ smbinning.plot=function(ivout,option="dist",sub=""){
 smbinning.gen=function(df,ivout,chrname="NewChar"){
   df=cbind(df,tmpname=NA)
   ncol=ncol(df)
-  col_id=ivout$col_id
+  col_id = which(names(df) == ivout$x)[1]
   df[,ncol][df[,col_id]>=ivout$bands[1] & df[,col_id]<=ivout$bands[2]]=paste(sprintf("%02d",0),ivout$x,"<=",ivout$bands[2])
   dim=length(ivout$bands)-1
   for (i in 2:dim){
