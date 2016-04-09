@@ -753,7 +753,7 @@ smbinning.plot=function(ivout,option="dist",sub=""){
 #'   smbinning.gen(chileancredit,result,"gTOB") # Update population
 #' sqldf("select gTOB,count(*) as Recs 
 #'       from chileancredit group by gTOB") # Check new field counts 
-smbinning.gen=function(df,ivout,chrname="NewChar"){
+smbinning.gen=function(df,ivout,chrname="NewChar", extend=FALSE){
   ndf=data.frame(tmpname=rep(NA,nrow(df)))
   ncol=ncol(ndf)
   col_id = which(names(df) == ivout$x)[1]
@@ -761,6 +761,12 @@ smbinning.gen=function(df,ivout,chrname="NewChar"){
   dim=length(ivout$bands)-1
   for (i in 2:dim){
     ndf[,ncol][df[,col_id]>ivout$bands[i] & df[,col_id]<=ivout$bands[i+1]]=paste0("[",sprintf("%02d",i-1),"] ",ivout$x,"<=",ivout$bands[i+1])
+  }
+  
+  if(extend == TRUE){
+    nm_class = names(table(ndf[,ncol]))
+    ndf[,ncol][ df[,col_id] > ivout$bands[length(ivout$bands)]] = nm_class[length(nm_class)]
+    ndf[,ncol][ df[,col_id] < ivout$bands[1]] = nm_class[1]
   }
   ndf[,ncol][is.na(df[,col_id])]=paste("[99]",ivout$x,"Is Null")
   names(ndf)[names(ndf)=="tmpname"]=chrname
