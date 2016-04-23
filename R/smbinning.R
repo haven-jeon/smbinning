@@ -753,7 +753,31 @@ smbinning.plot=function(ivout,option="dist",sub=""){
 #'   smbinning.gen(chileancredit,result,"gTOB") # Update population
 #' sqldf("select gTOB,count(*) as Recs 
 #'       from chileancredit group by gTOB") # Check new field counts 
-smbinning.gen=function(df,ivout,chrname="NewChar", extend=FALSE){
+smbinning.gen=function(df,ivout,chrname="NewChar"){
+  df=cbind(df,tmpname=NA)
+  ncol=ncol(df)
+  col_id=ivout$col_id
+  df[,ncol][df[,col_id]>=ivout$bands[1] & df[,col_id]<=ivout$bands[2]]=paste(sprintf("%02d",0),ivout$x,"<=",ivout$bands[2])
+  dim=length(ivout$bands)-1
+  for (i in 2:dim){
+    df[,ncol][df[,col_id]>ivout$bands[i] & df[,col_id]<=ivout$bands[i+1]]=paste(sprintf("%02d",i-1),ivout$x,"<=",ivout$bands[i+1])
+  }
+  df[,ncol][is.na(df[,col_id])]=paste("99",ivout$x,"Is Null")
+  names(df)[names(df)=="tmpname"]=chrname
+  return(df)
+}
+# End Gen Characteristic #######################################################
+
+
+#' Utility to generate a new characteristic
+#'
+#' It generates a vector with a new predictive characteristic after the binning process.
+#' @param df Dataset for new characteristic.
+#' @param ivout An object generated after \code{smbinning}.
+#' @param extend if TRUE, overflowed input value will be merged to highest or lowest bins.
+#' @return A data frame with the binned version of the characteristic analyzed with \code{smbinning}.
+#' @author Heewon Jeon
+smbinning.gen2=function(df, ivout, extend=FALSE){
   ndf=data.frame(tmpname=rep(NA,nrow(df)))
   ncol=ncol(ndf)
   col_id = which(names(df) == ivout$x)[1]
@@ -769,10 +793,9 @@ smbinning.gen=function(df,ivout,chrname="NewChar", extend=FALSE){
     ndf[,ncol][ df[,col_id] < ivout$bands[1]] = nm_class[1]
   }
   ndf[,ncol][is.na(df[,col_id])]=paste("[99]",ivout$x,"Is Null")
-  names(ndf)[names(ndf)=="tmpname"]=chrname
+  #names(ndf)[names(ndf)=="tmpname"]=chrname
   return(ndf[,1])
 }
-# End Gen Characteristic #######################################################
 
 # Begin: SQL Code #############################################################
 #' SQL Code

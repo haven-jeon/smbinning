@@ -1,2 +1,2 @@
 exportPattern("^[[:alpha:]]+")
-import(sqldf,partykit,Formula,tcltk,gsubfn)
+import(sqldf,partykit,Formula,tcltk,gsubfn,ggplot2,data.table)
