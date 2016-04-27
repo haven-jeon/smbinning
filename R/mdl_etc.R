@@ -4,7 +4,7 @@
 #' @param eval_vec eval_vec used for target PSI
 #' @param base_ym base_ym reference ymd 
 #' @param eval_ym eval_ym target ymd
-#' @import data.table
+#' @import dplyr
 psi_f <- function(base_vec, eval_vec, base_ym, eval_ym) {
   
   psi_raw <- cbind(
@@ -12,13 +12,14 @@ psi_f <- function(base_vec, eval_vec, base_ym, eval_ym) {
     prop.table(table(eval_vec, useNA = 'always'))
   )
   
-  psi_raw <- data.table(psi_raw, keep.rownames=T)
+  psi_raw <- data.frame(psi_raw, row.names = NULL)
   
   f1 <- base_ym
   f2 <- eval_ym
-  setnames(psi_raw, 2:3, c(f1, f2))
+  names(psi_raw)[1:2] <- c(f1, f2)
+  #setnames(psi_raw, 2:3, c(f1, f2))
   
-  psi_raw <- psi_raw[,`:=`(psi=(get(f2)-get(f1))*log(get(f2)/get(f1)))]
+  psi_raw <- psi_raw %>% mutate(psi=(get(f2,envir = as.environment(psi_raw))-get(f1, envir = as.environment(psi_raw)))*log(get(f2, envir = as.environment(psi_raw))/get(f1, envir = as.environment(psi_raw)))) 
   
   return(list(psi_detail=data.frame(psi_raw), psi=sum(psi_raw$psi,na.rm = T)))
 }
@@ -59,9 +60,11 @@ plot_ks <- function(bad_score, n_bad_score, bad_txt='BAD', n_bad_txt='NORM' ){
 #' @param pred predicted value 
 #' @return Divergence statistics 
 #' @import ggplot2 
+#' @import dplyr
 plot_div <- function(truth, pred){
-  restbl <- data.table(truth=factor(truth), pred=pred)
-  restbl_ <- restbl[,list(sds=sd(pred), avg=mean(pred)),truth]
+  restbl <- data.frame(truth=factor(truth), pred=pred)
+  restbl_ <- restbl %>% group_by(truth) %>% summarize(sds=sd(pred), avg=mean(pred)) %>% ungroup
+  #restbl_ <- restbl[,list(sds=sd(pred), avg=mean(pred)),truth]
   print(ggplot(restbl, aes(pred)) + geom_density(aes(fill=truth), alpha=0.7))
   return((diff(restbl_$avg))^2/(sum(restbl_$sds)/2))
 }
